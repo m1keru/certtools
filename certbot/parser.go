@@ -141,13 +141,12 @@ func (center *Center) installCrls() {
 		for _, key := range pak.Keys {
 			for _, crl := range key.Crls {
 				err := installCrlToContainer(&crl)
-				if err != nil {
-					if err.Error() == "CRLNVAL" {
-						return
-					}
-					panic(err)
+				if err == nil {
+					fmt.Printf("%-90sisntalled\n", crl)
+					break
+				} else {
+					fmt.Printf("error:%s (try next revocation distributor)\n", err)
 				}
-				fmt.Printf("%-90sisntalled\n", crl)
 			}
 
 		}
@@ -181,24 +180,24 @@ func installCertToContainer(cert *[]byte) error {
 }
 
 func installCrlToContainer(cert *string) error {
-	content := getCrlByURL(cert)
-	if content == nil {
-		fmt.Printf("error:%40sget crl failed:%s\n", " ", *cert)
-		return nil
+	content, err := getCrlByURL(cert)
+	if err != nil {
+		return err
 	}
 	file, _ := makeTemp(&content)
 	cmd := exec.Command("/opt/cprocsp/bin/amd64/certmgr", "-inst", "-store=mCA", "-crl", "--file="+file)
 	if err := cmd.Run(); err != nil {
 		if err.Error() == "exit status 45" {
-			log.Printf("error:%3scrl not valid:%s\n", " ", *cert)
 			fmt.Printf("error:%3scrl not valid:%s\n", " ", *cert)
 			return errors.New("CRLNVAL")
 		}
-		log.Printf("error:%3sfail to install crl:%s\n%s\n", " ", *cert, err.Error())
-		fmt.Printf("error:%3sfail to install crl:%s\n%s\n", " ", *cert, err.Error())
 	}
 	defer os.Remove(file)
 	return nil
+}
+
+func isCertAlreadyInstalled(root *UcRoot) {
+	// MAKE LIST OF SHA1
 }
 
 func testUserCert(certPath string) {
@@ -224,18 +223,26 @@ func makeListInstalledCerts(listCaPath *string) {
 	//fmt.Println(stdout.String())
 }
 
-func getCrlByURL(crl *string) []byte {
-	response, err := http.Get(*crl)
+func getCrlByURL(crl *string) ([]byte, error) {
+	supportedProtos := map[string]bool{"http": true, "ftp": false}
+	if supportedProtos[strings.Split(*crl, ":")[0]] == false {
+		return nil, errors.New("unsupported proto")
+	}
+
+	timeout := time.Duration(2 * time.Second)
+	client := http.Client{
+		Timeout: timeout,
+	}
+
+	response, err := client.Get(*crl)
 	if err != nil {
-		fmt.Printf("error:%40surl:%s description:%s\n", " ", *crl, err)
-		return nil
+		return nil, err
 	}
 	fileContent, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		fmt.Printf("error:%40surl:%s description:%s\n", " ", *crl, err)
-		return nil
+		return nil, err
 	}
-	return fileContent
+	return fileContent, nil
 }
 
 func getRosreestrXML(url string) {
