@@ -175,6 +175,12 @@ func installCertToContainer(cert *[]byte) error {
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
+
+	cmd = exec.Command("/opt/cprocsp/bin/amd64/certmgr", "-inst", "-store=mCA", "--file="+file)
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
+
 	defer os.Remove(file)
 	return nil
 }
@@ -198,6 +204,17 @@ func installCrlToContainer(cert *string) error {
 
 func isCertAlreadyInstalled(root *UcRoot) {
 	// MAKE LIST OF SHA1
+}
+
+func makeListOfUCS(root *UcRoot) {
+	ucFile, err := os.Create("./ucs_grabbed.list")
+	if err != nil {
+		log.Fatal("Cannot create file %s", err)
+	}
+	defer ucFile.Close()
+	for _, uc := range root.Centers {
+		ucFile.WriteString(uc.FullName + "\n")
+	}
 }
 
 func testUserCert(certPath string) {
@@ -332,6 +349,8 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	makeListOfUCS(&root)
 
 	if newer := checkXMLVersion(&root, &oldRoot); newer {
 		fmt.Println("У нас новая XML-ка, ну давайте запарсим и загрузим!")
