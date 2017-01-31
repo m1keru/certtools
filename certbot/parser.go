@@ -26,7 +26,9 @@ type customTime struct {
 
 func (c *customTime) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var v string
-	d.DecodeElement(&v, &start)
+	if err := d.DecodeElement(&v, &start); err != nil {
+		return err
+	}
 	parse, err := time.Parse(time.RFC3339, v)
 	if err != nil {
 		return err
@@ -68,7 +70,7 @@ type CenterAddress struct {
 type PAK struct {
 	XMLName       xml.Name      `xml:"ПрограммноАппаратныйКомплекс"`
 	Alias         string        `xml:"Псевдоним"`
-	CryptoClass   string        `xml:""КлассСредствЭП"`
+	CryptoClass   string        `xml:"КлассСредствЭП"`
 	PakAddress    CenterAddress `xml:"Адрес"`
 	CryptoVersion string        `xml:"СредстваУЦ"`
 	Keys          []Key         `xml:"КлючиУполномоченныхЛиц>Ключ"`
@@ -105,9 +107,12 @@ func init() {
 
 func findAndInstallCertByName(ucName string, root *UcRoot) {
 	for _, uc := range root.Centers {
-		if strings.Compare(ucName, uc.FullName) == 0 {
+		if strings.Compare(ucName, strings.TrimSpace(uc.FullName)) == 0 {
 			uc.installCrls()
 			uc.installCerts()
+		} else {
+			log.Panic("debug: not equal: %s !=  %s\n", ucName, uc.FullName)
+			log.Panic("debug: not equal: %x !=  %x\n", []byte(ucName), []byte(uc.FullName))
 		}
 	}
 }
@@ -209,7 +214,7 @@ func isCertAlreadyInstalled(root *UcRoot) {
 func makeListOfUCS(root *UcRoot) {
 	ucFile, err := os.Create("./ucs_grabbed.list")
 	if err != nil {
-		log.Fatal("Cannot create file %s", err)
+		log.Fatal("Cannot create file :", err)
 	}
 	defer ucFile.Close()
 	for _, uc := range root.Centers {
