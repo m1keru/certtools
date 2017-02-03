@@ -105,11 +105,11 @@ func init() {
 	}
 }
 
-func findAndInstallCertByName(ucName string, root *UcRoot) {
+func findAndInstallCertByName(ucName string, root *UcRoot, fingerFile *os.File) {
 	for _, uc := range root.Centers {
 		if strings.Compare(ucName, strings.TrimSpace(uc.FullName)) == 0 {
 			uc.installCrls()
-			uc.installCerts()
+			uc.installCerts(fingerFile)
 		}
 		//else {
 		//log.Panic("debug: not equal: %s !=  %s\n", ucName, uc.FullName)
@@ -118,17 +118,16 @@ func findAndInstallCertByName(ucName string, root *UcRoot) {
 	}
 }
 
-func findAndInstallUcByAlias(alias string, root *UcRoot) {
-	for _, uc := range root.Centers {
-		if strings.Compare(alias, uc.ShortName) == 0 {
-			go uc.installCrls()
-			go uc.installCerts()
-		}
-	}
+//func findAndInstallUcByAlias(alias string, root *UcRoot) {
+//	for _, uc := range root.Centers {
+//		if strings.Compare(alias, uc.ShortName) == 0 {
+//			go uc.installCrls()
+//			go uc.installCerts()
+//		}
+//	}
+//}
 
-}
-
-func installCertByUcFile(listfile string, root *UcRoot) {
+func installCertByUcFile(listfile string, root *UcRoot, fingerFile *os.File) {
 	if file, err := os.Open(listfile); err != nil {
 		panic("error: Cannor open list of UC CNs")
 	} else {
@@ -137,7 +136,7 @@ func installCertByUcFile(listfile string, root *UcRoot) {
 			fmt.Println("----------------------------------------------------------------------------------------------------------------------------")
 			fmt.Printf("%s\n", bufScanner.Text())
 			fmt.Println("----------------------------------------------------------------------------------------------------------------------------")
-			findAndInstallCertByName(bufScanner.Text(), root)
+			findAndInstallCertByName(bufScanner.Text(), root, fingerFile)
 		}
 	}
 }
@@ -160,14 +159,23 @@ func (center *Center) installCrls() {
 
 }
 
-func (center *Center) installCerts() {
+func (center *Center) installCerts(fingerFile *os.File) {
+	fileContent, err := ioutil.ReadFile(fingerFile.Name())
+	if err != nil {
+		fmt.Println("Cannot read file" + err.Error())
+	}
 	for _, pak := range center.PAKs {
 		for _, key := range pak.Keys {
 			for _, cert := range key.Certs {
-				if err := installCertToContainer(&cert.CertData); err != nil {
-					panic(err)
+				if strings.Contains(string(fileContent), cert.Footprint) {
+
+				} else {
+					fmt.Println("Новый сертификат: SHA1   " + cert.Footprint)
+					if err := installCertToContainer(&cert.CertData); err != nil {
+						panic(err)
+					}
+					fmt.Printf("%-90sinstalled\n", string(cert.Serial))
 				}
-				fmt.Printf("%-90sinstalled\n", string(cert.Serial))
 			}
 
 		}
@@ -186,7 +194,6 @@ func installCertToContainer(cert *[]byte) error {
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
-
 	defer os.Remove(file)
 	return nil
 }
@@ -208,8 +215,16 @@ func installCrlToContainer(cert *string) error {
 	return nil
 }
 
-func isCertAlreadyInstalled(root *UcRoot) {
-	// MAKE LIST OF SHA1
+func dumpUcsFingerptints(root *UcRoot, fingerFile *os.File) {
+	for _, uc := range root.Centers {
+		for _, pak := range uc.PAKs {
+			for _, key := range pak.Keys {
+				for _, cert := range key.Certs {
+					fingerFile.WriteString(string(cert.Footprint) + "\n")
+				}
+			}
+		}
+	}
 }
 
 func makeListOfUCS(root *UcRoot) {
@@ -330,7 +345,6 @@ func main() {
 	if e == nil {
 		log.SetOutput(logwriter)
 	}
-
 	oldRoot := UcRoot{}
 	oldXMLFile, err := ioutil.ReadFile("./uc.xml")
 
@@ -356,11 +370,18 @@ func main() {
 		panic(err.Error())
 	}
 
+	fingerFile, err := os.Create("./fingers.list")
+	if err != nil {
+		log.Fatal("Cannot create file :", err)
+	}
+	defer fingerFile.Close()
+	dumpUcsFingerptints(&oldRoot, fingerFile)
+
 	makeListOfUCS(&root)
 
 	if newer := checkXMLVersion(&root, &oldRoot); newer {
 		fmt.Println("У нас новая XML-ка, ну давайте запарсим и загрузим!")
-		installCertByUcFile(*uclist, &root)
+		installCertByUcFile(*uclist, &root, fingerFile)
 		makeListInstalledCerts(listCaPath)
 		return
 	}
