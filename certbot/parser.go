@@ -96,6 +96,21 @@ type Cert struct {
 	CertData  []byte     `xml:"Данные"`
 }
 
+func create_file_if_not_exists(path string) (*os.File, error) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		file, err := os.Create(path)
+		if err != nil {
+			return nil, err
+		}
+		return file, nil
+	}
+	file, err := os.OpenFile(path, os.O_RDWR, 0755)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
 func init() {
 	cfg := &tls.Config{
 		InsecureSkipVerify: true,
@@ -117,15 +132,6 @@ func findAndInstallCertByName(ucName string, root *UcRoot, fingerFile *os.File) 
 		//}
 	}
 }
-
-//func findAndInstallUcByAlias(alias string, root *UcRoot) {
-//	for _, uc := range root.Centers {
-//		if strings.Compare(alias, uc.ShortName) == 0 {
-//			go uc.installCrls()
-//			go uc.installCerts()
-//		}
-//	}
-//}
 
 func installCertByUcFile(listfile string, root *UcRoot, fingerFile *os.File) {
 	if file, err := os.Open(listfile); err != nil {
@@ -168,7 +174,7 @@ func (center *Center) installCerts(fingerFile *os.File) {
 		for _, key := range pak.Keys {
 			for _, cert := range key.Certs {
 				if strings.Contains(string(fileContent), cert.Footprint) {
-
+					fmt.Println("Сертификат уже есть: SHA1   " + cert.Footprint)
 				} else {
 					fmt.Println("Новый сертификат: SHA1   " + cert.Footprint)
 					if err := installCertToContainer(&cert.CertData); err != nil {
@@ -317,6 +323,8 @@ func checkXMLVersion(newRoot *UcRoot, oldRoot *UcRoot) bool {
 func main() {
 	var certPath = flag.String("certpath", "None", "путь до сертификата который проверяем (работаете только совместно c --testcert)")
 	var testCert = flag.Bool("testcert", false, "флаг указывающий на режим проверки сертификата")
+	var forceUpdate = flag.Bool("forceupdate", false, "флаг указывающий на игнорирование проверки версии xml")
+	//var crlonly = flag.Bool("crlonly", false, "флаг обновления только списков отзыва (не реализовано)")
 	var listCa = flag.Bool("listca", false, "выводит список установленный корневых сертификатов в файл installed.list")
 	var listCaPath = flag.String("listcapath", "installed.list", "путь куда записать список сертификатов")
 	var uclist = flag.String("list", "", "путь до файла со списком аккредитованых УЦ")
@@ -370,12 +378,16 @@ func main() {
 		panic(err.Error())
 	}
 
-	fingerFile, err := os.Create("./fingers.list")
+	if *forceUpdate {
+		root.Version = 9999999999999
+	}
+
+	//	fingerFile, err := os.Create("./fingers.list")
+	fingerFile, err := create_file_if_not_exists("./fingers.list")
 	if err != nil {
 		log.Fatal("Cannot create file :", err)
 	}
 	defer fingerFile.Close()
-	dumpUcsFingerptints(&oldRoot, fingerFile)
 
 	makeListOfUCS(&root)
 
@@ -383,6 +395,7 @@ func main() {
 		fmt.Println("У нас новая XML-ка, ну давайте запарсим и загрузим!")
 		installCertByUcFile(*uclist, &root, fingerFile)
 		makeListInstalledCerts(listCaPath)
+		dumpUcsFingerptints(&oldRoot, fingerFile)
 		return
 	}
 	fmt.Println("Ну мы тут посовещались и решили что XML-ка не обновилась, делать ниче не будем")
