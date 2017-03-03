@@ -18,6 +18,8 @@ import (
 	"time"
 )
 
+var VERSION = 1.1
+
 var failedCrls []string
 
 type customTime struct {
@@ -324,7 +326,7 @@ func main() {
 	var certPath = flag.String("certpath", "None", "путь до сертификата который проверяем (работаете только совместно c --testcert)")
 	var testCert = flag.Bool("testcert", false, "флаг указывающий на режим проверки сертификата")
 	var forceUpdate = flag.Bool("forceupdate", false, "флаг указывающий на игнорирование проверки версии xml")
-	//var crlonly = flag.Bool("crlonly", false, "флаг обновления только списков отзыва (не реализовано)")
+	var version = flag.Bool("version", false, "версия дистрибутива")
 	var listCa = flag.Bool("listca", false, "выводит список установленный корневых сертификатов в файл installed.list")
 	var listCaPath = flag.String("listcapath", "installed.list", "путь куда записать список сертификатов")
 	var uclist = flag.String("list", "", "путь до файла со списком аккредитованых УЦ")
@@ -333,6 +335,12 @@ func main() {
 		flag.Usage()
 		return
 	}
+
+	if *version {
+		fmt.Println(VERSION)
+		return
+	}
+
 	if *testCert {
 		fmt.Println("------------ режим тестирования ------------------")
 		if *certPath == "None" {
