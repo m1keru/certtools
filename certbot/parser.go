@@ -155,13 +155,12 @@ func (center *Center) installCrls() {
 			for _, crl := range key.Crls {
 				err := installCrlToContainer(&crl)
 				if err == nil {
-					fmt.Printf("%-90sisntalled\n", crl)
+					fmt.Printf("%-90sinstalled\n", crl)
 					break
 				} else {
 					fmt.Printf("error:%s (try next revocation distributor)\n", err)
 				}
 			}
-
 		}
 	}
 
@@ -193,7 +192,7 @@ func (center *Center) installCerts(fingerFile *os.File) {
 
 func installCertToContainer(cert *[]byte) error {
 	file, _ := makeTemp(cert)
-	cmd := exec.Command("/opt/cprocsp/bin/amd64/certmgr", "-inst", "-store=root", "--file="+file)
+	cmd := exec.Command("/opt/cprocsp/bin/amd64/certmgr", "-inst", "-store=mRoot", "--file="+file)
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}

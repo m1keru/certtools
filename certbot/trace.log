@@ -1,0 +1,9 @@
+30444 socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 4
+30444 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+30444 socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 4
+30444 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+30444 socket(AF_UNIX, SOCK_DGRAM|SOCK_CLOEXEC, 0) = 7
+30444 connect(7, {sa_family=AF_UNIX, sun_path="/dev/log"}, 110) = 0
+30444 sendto(7, "<35>Mar 10 15:12:55 cpcsp[30444]: capi20: CryptMsgGetParam () Exception :'\316\370\350\341\352\340 0x80091010: The streamed cryptographic message is not ready to return data.' at file:'/dailybuildsbranches/CSP_4_0/CSPbuild/CSP/capilite/CMSMessage.cpp' line:205", 242, MSG_NOSIGNAL, NULL, 0) = 242
+30445 +++ exited with 16 +++
+30444 +++ exited with 16 +++
