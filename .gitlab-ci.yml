@@ -3,7 +3,7 @@ variables:
 do_build:
   stage: build
   tags:
-    - dev-rpmbuild
+    - golang
   only:
     - build
   script:
