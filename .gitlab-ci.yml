@@ -23,7 +23,7 @@ do_notify_success:
   only:
     - build
   script:
-    - curl -v  -k -i -X POST https://api.telegram.org/bot364544234:AAHryqxz5LU5w3tw6gsNlGtF8vGKzUsKFmg/sendMessage -d text="Прошла успешная сборка ${CI_PROJECT_NAME}" -d chat_id="-198561529" || /bin/true'
+    - curl -v  -k -i -X POST https://api.telegram.org/bot364544234:AAHryqxz5LU5w3tw6gsNlGtF8vGKzUsKFmg/sendMessage -d text="Прошла успешная сборка ${CI_PROJECT_NAME}" -d chat_id="-198561529" || /bin/true
   when: on_success
 
 
