@@ -127,11 +127,10 @@ func findAndInstallCertByName(ucName string, root *UcRoot, fingerFile *os.File) 
 		if strings.Compare(ucName, strings.TrimSpace(uc.FullName)) == 0 {
 			uc.installCrls()
 			uc.installCerts(fingerFile)
+		} else {
+			fmt.Printf("debug: not equal: %s !=  %s\n", ucName, uc.FullName)
+			fmt.Printf("debug: not equal: %x !=  %x\n", []byte(ucName), []byte(uc.FullName))
 		}
-		//else {
-		//log.Panic("debug: not equal: %s !=  %s\n", ucName, uc.FullName)
-		//log.Panic("debug: not equal: %x !=  %x\n", []byte(ucName), []byte(uc.FullName))
-		//}
 	}
 }
 

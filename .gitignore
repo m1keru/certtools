@@ -1,4 +1,9 @@
 # Add any directories, files, or patterns you don't want to be tracked by version control
 *.cer
 *.tgz
-*.list
+certbot/ucs_grabbed.list
+certbot/fingers.list
+certbot/installed.list
+certbot/uc.xml
+certbot/ucs.list
+certbot/certbot
