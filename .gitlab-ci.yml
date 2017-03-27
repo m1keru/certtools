@@ -7,10 +7,12 @@ do_build:
   only:
     - build
   script:
+    - pushd certbot > /dev/null
     - go build -o ${BIN_NAME}
+    - popd > /dev/null
   artifacts:
     paths:
-      - certbot.bin
+      - certbot/${BIN_NAME}
     when: on_success
     expire_in: 1 day
 stages:
