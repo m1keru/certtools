@@ -23,7 +23,7 @@ do_notify_success:
   only:
     - build
   script:
-    - 'curl -H "Content-Type: application/json" -X POST -d ''{"text":"Прошла успешная сборка  ${CI_PROJECT_NAME} "}'' https://integram.org/cWEyamzSWbo || /bin/true'
+    - 'curl  -H "Content-Type: application/json" -X POST -d ''{"text":"Прошла успешная сборка  ${CI_PROJECT_NAME} "}'' https://integram.org/cWEyamzSWbo || /bin/true'
   when: on_success
 
 
