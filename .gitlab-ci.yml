@@ -16,7 +16,7 @@ do_build:
     when: on_success
     expire_in: 1 day
 
-do_notify:
+do_notify_success:
   stage: notify
   tags:
     - golang
@@ -27,7 +27,7 @@ do_notify:
   when: on_success
 
 
-do_notify:
+do_notify_failure:
   stage: notify
   tags:
     - golang
