@@ -34,7 +34,7 @@ do_notify_failure:
   only:
     - build
   script:
-    - curl -v  -k -i -X POST https://api.telegram.org/bot364544234:AAHryqxz5LU5w3tw6gsNlGtF8vGKzUsKFmg/sendMessage -d text="Провалилась сборка для  ${CI_PROJECT_NAME} ${CI_PROJECT_URL} "}" -d chat_id="-198561529" || /bin/true'
+    - curl -v  -k -i -X POST https://api.telegram.org/bot364544234:AAHryqxz5LU5w3tw6gsNlGtF8vGKzUsKFmg/sendMessage -d text="Провалилась сборка для  ${CI_PROJECT_NAME} ${CI_PROJECT_URL} "}" -d chat_id="-198561529" || /bin/true
   when: on_failure
 
 stages:
