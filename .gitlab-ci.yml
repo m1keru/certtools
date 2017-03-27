@@ -15,5 +15,28 @@ do_build:
       - certbot/${BIN_NAME}
     when: on_success
     expire_in: 1 day
+
+do_notify:
+  stage: notify
+  tags:
+    - golang
+  only:
+    - build
+  script:
+    - 'curl -H "Content-Type: application/json" -X POST -d ''{"text":"Прошла успешная сборка  ${CI_PROJECT_NAME} "}'' https://integram.org/cWEyamzSWbo || /bin/true'
+  when: on_success
+
+
+do_notify:
+  stage: notify
+  tags:
+    - golang
+  only:
+    - build
+  script:
+    - 'curl -H "Content-Type: application/json" -X POST -d ''{"text":"Провалилась сборка для  ${CI_PROJECT_NAME} ${CI_PROJECT_URL} "}'' https://integram.org/cWEyamzSWbo || /bin/true'
+  when: on_failure
+
 stages:
   - build
+  - notify
