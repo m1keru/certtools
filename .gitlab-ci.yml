@@ -11,5 +11,7 @@ do_build:
   artifacts:
     paths:
       - certbot.bin
-  when: on_success
-  expire_in: 1 day
+    when: on_success
+    expire_in: 1 day
+stages:
+  - build
