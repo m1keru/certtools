@@ -1,0 +1,15 @@
+variables:
+  BIN_NAME: "certbot.bin"
+do_build:
+  stage: build
+  tags:
+    - dev-rpmbuild
+  only:
+    - build
+  script:
+    - go build -o ${BIN_NAME}
+  artifacts:
+    paths:
+      - certbot.bin
+  when: on_success
+  expire_in: 1 day
