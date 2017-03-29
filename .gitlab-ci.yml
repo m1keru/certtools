@@ -2,8 +2,6 @@ variables:
   BIN_NAME: "certbot.bin"
 do_build:
   stage: build
-  enviroment:
-    name: m1ke
   tags:
     - golang
   only:
@@ -17,6 +15,8 @@ do_build:
       - certbot/${BIN_NAME}
     when: on_success
     expire_in: 1 day
+  environment:
+    name: m1ke
 
 do_notify_success:
   stage: notify
