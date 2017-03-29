@@ -2,6 +2,8 @@ variables:
   BIN_NAME: "certbot.bin"
 do_build:
   stage: build
+  enviroment:
+    name: m1ke
   tags:
     - golang
   only:
