@@ -1,0 +1,1 @@
+State: [![build status](http://gitlab.tektorg.ru/m1ke/certtools/badges/build/build.svg)](http://gitlab.tektorg.ru/m1ke/certtools/commits/build)
