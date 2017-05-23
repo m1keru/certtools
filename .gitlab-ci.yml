@@ -4,6 +4,7 @@ do_build:
   stage: build
   tags:
     - golang
+    - ${BIN_NAME}
   only:
     - build
   script:
