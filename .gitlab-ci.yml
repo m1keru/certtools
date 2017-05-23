@@ -1,5 +1,5 @@
-variables:
-  BIN_NAME: "certbot.bin"
+#variables:
+#  BIN_NAME: "certbot.bin"
 do_build:
   stage: build
   tags:
