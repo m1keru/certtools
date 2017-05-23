@@ -1,10 +1,10 @@
 variables:
-  BIN_NAME: "certbot.bin"
+  BIN_NAME: "dev"
 do_build:
   stage: build
   tags:
     - golang
-    - BIN_NAME
+    - 'eval $BIN_NAME'
   only:
     - build
   script:
