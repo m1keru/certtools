@@ -8,17 +8,21 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/nightlyone/lockfile"
 	"io/ioutil"
 	"log"
 	"log/syslog"
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
-var VERSION = 1.1
+var VERSION = 1.3
+
+// 1.3 - added locking
 
 var failedCrls []string
 
@@ -128,8 +132,8 @@ func findAndInstallCertByName(ucName string, root *UcRoot, fingerFile *os.File) 
 			uc.installCrls()
 			uc.installCerts(fingerFile)
 		} else {
-			fmt.Printf("debug: not equal: %s !=  %s\n", ucName, uc.FullName)
-			fmt.Printf("debug: not equal: %x !=  %x\n", []byte(ucName), []byte(uc.FullName))
+			//fmt.Printf("debug: not equal: %s !=  %s\n", ucName, uc.FullName)
+			//fmt.Printf("debug: not equal: %x !=  %x\n", []byte(ucName), []byte(uc.FullName))
 		}
 	}
 }
@@ -338,6 +342,18 @@ func main() {
 		fmt.Println(VERSION)
 		return
 	}
+
+	lock, err := lockfile.New(filepath.Join(os.TempDir(), "certbot.lock"))
+	if err != nil {
+		log.Fatalf("Cannot init lock. reason: %v", err)
+	}
+	err = lock.TryLock()
+
+	if err != nil {
+		log.Fatalf("Cannot lock %q, reason: %v", lock, err)
+	}
+
+	defer lock.Unlock()
 
 	if *testCert {
 		fmt.Println("------------ режим тестирования ------------------")
