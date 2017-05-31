@@ -14,11 +14,14 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
-var VERSION = 1.2
+var VERSION = 1.3
+
+// 1.3 - added locking
 
 var failedCrls []string
 
