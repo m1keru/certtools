@@ -16,8 +16,7 @@ do_build:
     - go get ./...
     - go build -o ${BIN_NAME}
     - popd > /dev/null
-    - pushd src > /dev/null
-    - echo $(pwd)
+    - mv src/certbot .
   artifacts:
     paths:
       - ${BIN_NAME}
