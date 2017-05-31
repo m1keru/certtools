@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/nightlyone/lockfile"
 	"io/ioutil"
 	"log"
 	"log/syslog"
@@ -341,6 +342,18 @@ func main() {
 		fmt.Println(VERSION)
 		return
 	}
+
+	lock, err := lockfile.New(filepath.Join(os.TempDir(), "certbot.lock"))
+	if err != nil {
+		log.Fatalf("Cannot init lock. reason: %v", err)
+	}
+	err = lock.TryLock()
+
+	if err != nil {
+		log.Fatalf("Cannot lock %q, reason: %v", lock, err)
+	}
+
+	defer lock.Unlock()
 
 	if *testCert {
 		fmt.Println("------------ режим тестирования ------------------")
