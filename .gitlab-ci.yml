@@ -9,7 +9,8 @@ do_build:
   only:
     - build
   script:
-    - export GOPATH=$(pwd)
+    - export GOPATH=$HOME
+    - echo $GOPATH
     - pushd certbot > /dev/null
     - go get ./...
     - go build -o ${BIN_NAME}
