@@ -10,6 +10,7 @@ do_build:
     - build
   script:
     - pushd certbot > /dev/null
+    - go get ./...
     - go build -o ${BIN_NAME}
     - popd > /dev/null
   artifacts:
