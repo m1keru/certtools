@@ -12,10 +12,12 @@ do_build:
     - export GOPATH=$(pwd)
     - mkdir src 
     - mv certbot ./src/
-    - cd src/certbot
+    - pushd src/certbot > /dev/null
     - go get ./...
     - go build -o ${BIN_NAME}
-    - cd .. 
+    - popd > /dev/null
+    - pushd src > /dev/null
+    - echo $(pwd)
   artifacts:
     paths:
       - ${BIN_NAME}
