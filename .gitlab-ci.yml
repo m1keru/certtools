@@ -13,7 +13,7 @@ do_build:
     - popd > /dev/null
   artifacts:
     paths:
-      - certbot/${BIN_NAME}
+      - ${BIN_NAME}
     when: on_success
     expire_in: 1 day
   environment:
