@@ -1,5 +1,6 @@
 variables:
   BIN_NAME: "certbot"
+  GIT_STRATEGY: clone
 do_build:
   stage: build
   tags:
