@@ -14,7 +14,7 @@ do_build:
     - mv certbot ./src/
     - pushd src/certbot > /dev/null
     - go get ./...
-    - go1 build -o ${BIN_NAME}
+    - go build -o ${BIN_NAME}
     - popd > /dev/null
     - rm -rf src/certbot/parser.go
     - mv src/certbot .
