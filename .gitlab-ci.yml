@@ -33,7 +33,7 @@ do_notify_success:
   only:
     - build
   script:
-    - /usr/local/bin/tgbot -msg "прошла успешная сборка ${CI_PROJECT_NAME} ${CI_PROJECT_URL}/pipelines/${CI_PIPELINE_ID}" || /bin/true
+    - /usr/local/bin/tgbot -msg "прошла успешная сборка ${CI_PROJECT_NAME} [pipeline](${CI_PROJECT_URL}/pipelines/${CI_PIPELINE_ID})" || /bin/true
   when: on_success
 
 
@@ -44,7 +44,7 @@ do_notify_failure:
   only:
     - build
   script:
-    - /usr/local/bin/tgbot -fail -msg "сборка провалилась ${CI_PROJECT_NAME} ${CI_PROJECT_URL}/pipelines/${CI_PIPELINE_ID}" || /bin/true
+    - /usr/local/bin/tgbot -fail -msg "сборка провалилась ${CI_PROJECT_NAME} [pipeline](${CI_PROJECT_URL}/pipelines/${CI_PIPELINE_ID})" || /bin/true
   when: on_failure
 
 stages:
