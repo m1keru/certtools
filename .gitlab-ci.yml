@@ -1,6 +1,30 @@
 variables:
   BIN_NAME: "certbot"
   GIT_STRATEGY: clone
+
+
+do_lock:
+   stage: lock
+   only:
+    - etp/dev
+   tags:
+    - deploy_dev
+   script:
+    - lockfile -r 0 /tmp/build.lock || exit 1
+    
+do_unlock:
+   stage: unlock
+   only:
+    - etp/dev
+   tags:
+    - deploy_dev
+   script:
+    - rm -f /tmp/build.lock 
+
+after_script:
+    - echo $?
+
+
 do_build:
   stage: build
   tags:
@@ -48,5 +72,7 @@ do_notify_failure:
   when: on_failure
 
 stages:
+  - lock
   - build
   - notify
+  - unlock
