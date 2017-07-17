@@ -6,7 +6,7 @@ variables:
 do_lock:
    stage: lock
    only:
-    - etp/dev
+    - build
    tags:
     - deploy_dev
    script:
@@ -15,7 +15,7 @@ do_lock:
 do_unlock:
    stage: unlock
    only:
-    - etp/dev
+    - build
    tags:
     - deploy_dev
    script:
