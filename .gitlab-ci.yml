@@ -37,19 +37,20 @@ do_build:
   script:
     - export GOPATH=$(pwd)
     #- cat certbot/uc_accr.list
-    - mkdir src 
+    - mkdir src build
     - mv certbot ./src/
     - pushd src/certbot > /dev/null
     - go get ./...
     - go build -o ${BIN_NAME}
     - popd > /dev/null
     - rm -rf src/certbot/parser.go
-    - cp -r src/certbot .
-    - cat certbot/uc_accr.list
+    - rsync -av  src/certbot/ build/
+    - cat build/uc_accr.list
   artifacts:
     paths:
-      - ${BIN_NAME}
-      - certbot/uc_accr.list
+      - build/${BIN_NAME}
+      - build/uc_accr.list
+      - build/guc.list
     when: on_success
     expire_in: 1 day
   environment:
