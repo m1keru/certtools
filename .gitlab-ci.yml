@@ -36,6 +36,7 @@ do_build:
     - build
   script:
     - export GOPATH=$(pwd)
+    - if [[ -d "src" ]];then rm -rf src;fi
     - mkdir src 
     - mv certbot ./src/
     - pushd src/certbot > /dev/null
