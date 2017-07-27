@@ -3,28 +3,28 @@ variables:
   GIT_STRATEGY: clone
 
 
-do_lock:
-   stage: lock
-   only:
-    - build
-   tags:
-    - golang
-    - dev
-   script:
-    - lockfile -r 0 /tmp/build.lock || exit 1
+#do_lock:
+#   stage: lock
+#   only:
+#    - build
+#   tags:
+#    - golang
+#    - dev
+#   script:
+#    - lockfile -r 0 /tmp/build.lock || exit 1
     
-do_unlock:
-   stage: unlock
-   only:
-    - build
-   tags:
-    - golang
-    - dev
-   script:
-    - rm -f /tmp/build.lock 
+#do_unlock:
+#   stage: unlock
+#   only:
+#    - build
+#   tags:
+#    - golang
+#    - dev
+#   script:
+#    - rm -f /tmp/build.lock 
 
-after_script:
-    - echo $?
+#after_script:
+#    - echo $?
 
 
 do_build:
@@ -74,7 +74,7 @@ do_notify_failure:
   when: on_failure
 
 stages:
-  - lock
+# - lock
   - build
   - notify
-  - unlock
+# - unlock
