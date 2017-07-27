@@ -36,7 +36,7 @@ do_build:
     - build
   script:
     - export GOPATH=$(pwd)
-    - ls -R
+    - cat certbot/uc_accr.list
     - mkdir src 
     - mv certbot ./src/
     - pushd src/certbot > /dev/null
