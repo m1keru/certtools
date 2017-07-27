@@ -43,7 +43,7 @@ do_build:
     - go build -o ${BIN_NAME}
     - popd > /dev/null
     - rm -rf src/certbot/parser.go
-    - mv src/certbot . && ls src -R
+    - mv src/certbot . && ls -R
     #- mv src/certbot/uc_accr.list .
   artifacts:
     paths:
