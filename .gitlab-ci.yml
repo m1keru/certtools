@@ -44,7 +44,6 @@ do_build:
     - popd > /dev/null
     - rm -rf src/certbot/parser.go
     - mv src/certbot .
-    - mv certbot/uc_accr.list certbot/
   artifacts:
     paths:
       - ${BIN_NAME}
