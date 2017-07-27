@@ -36,7 +36,7 @@ do_build:
     - build
   script:
     - export GOPATH=$(pwd)
-    - git clean -fd
+    - ls -R
     - mkdir src 
     - mv certbot ./src/
     - pushd src/certbot > /dev/null
