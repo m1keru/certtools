@@ -43,12 +43,12 @@ do_build:
     - go build -o ${BIN_NAME}
     - popd > /dev/null
     - rm -rf src/certbot/parser.go
-    - mv src/certbot . && ls -R
-    #- mv src/certbot/uc_accr.list .
+    - mv src/certbot .
+    - mv certbot/uc_accr.list .
   artifacts:
     paths:
       - ${BIN_NAME}
-      #- uc_accr.list
+      - uc_accr.list
     when: on_success
     expire_in: 1 day
   environment:
