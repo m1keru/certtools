@@ -11,7 +11,7 @@ do_lock:
     - golang
     - dev
    script:
-    - pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -lock
+    - /usr/local/bin/pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -lock
     
 do_unlock:
    stage: unlock
@@ -21,7 +21,7 @@ do_unlock:
     - golang
     - dev
    script:
-    - pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -unlock 
+    - /usr/local/bin/pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -unlock 
 
 #after_script:
 #    - echo $?
