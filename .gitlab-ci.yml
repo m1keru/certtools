@@ -3,25 +3,25 @@ variables:
   GIT_STRATEGY: clone
 
 
-#do_lock:
-#   stage: lock
-#   only:
-#    - build
-#   tags:
-#    - golang
-#    - dev
-#   script:
-#    - lockfile -r 0 /tmp/build.lock || exit 1
+do_lock:
+   stage: lock
+   only:
+    - build
+   tags:
+    - golang
+    - dev
+   script:
+    - pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -lock
     
-#do_unlock:
-#   stage: unlock
-#   only:
-#    - build
-#   tags:
-#    - golang
-#    - dev
-#   script:
-#    - rm -f /tmp/build.lock 
+do_unlock:
+   stage: unlock
+   only:
+    - build
+   tags:
+    - golang
+    - dev
+   script:
+    - pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -unlock 
 
 #after_script:
 #    - echo $?
