@@ -8,7 +8,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/nightlyone/lockfile"
 	"io/ioutil"
 	"log"
 	"log/syslog"
@@ -16,11 +15,14 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
+
+	"github.com/nightlyone/lockfile"
 )
 
-var VERSION = 1.3
+var VERSION = 1.4
 
 // 1.3 - added locking
 
@@ -324,7 +326,14 @@ func checkXMLVersion(newRoot *UcRoot, oldRoot *UcRoot) bool {
 	return (newRoot.Version > oldRoot.Version)
 }
 
+func killOnTimeout(lock *lockfile.Lockfile, timeout int64) {
+	time.Sleep(time.Minute * time.Duration(timeout))
+	lock.Unlock()
+	log.Panic("Чето пощло не так")
+}
+
 func main() {
+	runtime.GOMAXPROCS(2)
 	var certPath = flag.String("certpath", "None", "путь до сертификата который проверяем (работаете только совместно c --testcert)")
 	var testCert = flag.Bool("testcert", false, "флаг указывающий на режим проверки сертификата")
 	var forceUpdate = flag.Bool("forceupdate", false, "флаг указывающий на игнорирование проверки версии xml")
@@ -332,6 +341,7 @@ func main() {
 	var listCa = flag.Bool("listca", false, "выводит список установленный корневых сертификатов в файл installed.list")
 	var listCaPath = flag.String("listcapath", "installed.list", "путь куда записать список сертификатов")
 	var uclist = flag.String("list", "", "путь до файла со списком аккредитованых УЦ")
+
 	flag.Parse()
 	if flag.NFlag() == 0 {
 		flag.Usage()
@@ -348,6 +358,8 @@ func main() {
 		log.Fatalf("Cannot init lock. reason: %v", err)
 	}
 	err = lock.TryLock()
+
+	go killOnTimeout(&lock, 60)
 
 	if err != nil {
 		log.Fatalf("Cannot lock %q, reason: %v", lock, err)
@@ -415,7 +427,9 @@ func main() {
 
 	if newer := checkXMLVersion(&root, &oldRoot); newer {
 		fmt.Println("У нас новая XML-ка, ну давайте запарсим и загрузим!")
-		installCertByUcFile(*uclist, &root, fingerFile)
+		for {
+			installCertByUcFile(*uclist, &root, fingerFile)
+		}
 		makeListInstalledCerts(listCaPath)
 		dumpUcsFingerptints(&oldRoot, fingerFile)
 		return
