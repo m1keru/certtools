@@ -427,9 +427,7 @@ func main() {
 
 	if newer := checkXMLVersion(&root, &oldRoot); newer {
 		fmt.Println("У нас новая XML-ка, ну давайте запарсим и загрузим!")
-		for {
-			installCertByUcFile(*uclist, &root, fingerFile)
-		}
+		installCertByUcFile(*uclist, &root, fingerFile)
 		makeListInstalledCerts(listCaPath)
 		dumpUcsFingerptints(&oldRoot, fingerFile)
 		return
