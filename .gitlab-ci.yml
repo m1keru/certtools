@@ -1,4 +1,4 @@
-#test ci 3
+#test ci 4
 variables:
   BIN_NAME: "certbot"
   GIT_STRATEGY: clone
