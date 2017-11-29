@@ -22,8 +22,10 @@ import (
 	"github.com/nightlyone/lockfile"
 )
 
-var VERSION = 1.4
+//VERSION  Версия дистриба
+var VERSION = 1.5
 
+// 1.5 - добавлен режим демона
 // 1.3 - added locking
 
 var failedCrls []string
@@ -338,6 +340,7 @@ func main() {
 	var testCert = flag.Bool("testcert", false, "флаг указывающий на режим проверки сертификата")
 	var forceUpdate = flag.Bool("forceupdate", false, "флаг указывающий на игнорирование проверки версии xml")
 	var version = flag.Bool("version", false, "версия дистрибутива")
+	var daemon = flag.Bool("daemon", false, "запустить в режиме демона, в этом режиме интерактив недоступен")
 	var listCa = flag.Bool("listca", false, "выводит список установленный корневых сертификатов в файл installed.list")
 	var listCaPath = flag.String("listcapath", "installed.list", "путь куда записать список сертификатов")
 	var uclist = flag.String("list", "", "путь до файла со списком аккредитованых УЦ")
@@ -400,37 +403,38 @@ func main() {
 		fmt.Println("Похоже что это свежая установка или вы грохнули старую XML-ку")
 	}
 
-	getRosreestrXML("https://e-trust.gosuslugi.ru/CA/DownloadTSL?schemaVersion=0")
+	for *daemon {
+		getRosreestrXML("https://e-trust.gosuslugi.ru/CA/DownloadTSL?schemaVersion=0")
 
-	root := UcRoot{}
-	xmlFile, err := ioutil.ReadFile("./uc.xml")
-	if err != nil {
-		panic(err.Error())
-	}
-	err = xml.Unmarshal(xmlFile, &root)
-	if err != nil {
-		panic(err.Error())
-	}
+		root := UcRoot{}
+		xmlFile, err := ioutil.ReadFile("./uc.xml")
+		if err != nil {
+			panic(err.Error())
+		}
+		err = xml.Unmarshal(xmlFile, &root)
+		if err != nil {
+			panic(err.Error())
+		}
 
-	if *forceUpdate {
-		root.Version = 9999999999999
-	}
+		if *forceUpdate {
+			root.Version = 9999999999999
+		}
 
-	//	fingerFile, err := os.Create("./fingers.list")
-	fingerFile, err := create_file_if_not_exists("./fingers.list")
-	if err != nil {
-		log.Fatal("Cannot create file :", err)
-	}
-	defer fingerFile.Close()
+		//	fingerFile, err := os.Create("./fingers.list")
+		fingerFile, err := create_file_if_not_exists("./fingers.list")
+		if err != nil {
+			log.Fatal("Cannot create file :", err)
+		}
+		defer fingerFile.Close()
 
-	makeListOfUCS(&root)
-
-	if newer := checkXMLVersion(&root, &oldRoot); newer {
-		fmt.Println("У нас новая XML-ка, ну давайте запарсим и загрузим!")
-		installCertByUcFile(*uclist, &root, fingerFile)
-		makeListInstalledCerts(listCaPath)
-		dumpUcsFingerptints(&oldRoot, fingerFile)
-		return
+		makeListOfUCS(&root)
+		if newer := checkXMLVersion(&root, &oldRoot); newer {
+			fmt.Println("У нас новая XML-ка, ну давайте запарсим и загрузим!")
+			installCertByUcFile(*uclist, &root, fingerFile)
+			makeListInstalledCerts(listCaPath)
+			dumpUcsFingerptints(&oldRoot, fingerFile)
+			return
+		}
+		fmt.Println("Ну мы тут посовещались и решили что XML-ка не обновилась, делать ниче не будем")
 	}
-	fmt.Println("Ну мы тут посовещались и решили что XML-ка не обновилась, делать ниче не будем")
 }
