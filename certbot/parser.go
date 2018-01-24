@@ -23,12 +23,11 @@ import (
 )
 
 //VERSION  Версия дистриба
-var VERSION = 1.5
+var VERSION = 1.6
 
 // 1.5 - добавлен режим демона
 // 1.3 - added locking
-
-var failedCrls []string
+// var failedCrls []string
 
 type customTime struct {
 	time.Time
@@ -106,7 +105,7 @@ type Cert struct {
 	CertData  []byte     `xml:"Данные"`
 }
 
-func create_file_if_not_exists(path string) (*os.File, error) {
+func createFileIfNotExists(path string) (*os.File, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		file, err := os.Create(path)
 		if err != nil {
@@ -325,7 +324,7 @@ func makeTemp(bytes *[]byte) (string, error) {
 }
 
 func checkXMLVersion(newRoot *UcRoot, oldRoot *UcRoot) bool {
-	return (newRoot.Version > oldRoot.Version)
+	return newRoot.Version > oldRoot.Version
 }
 
 func killOnTimeout(lock *lockfile.Lockfile, timeout int64) {
@@ -403,7 +402,7 @@ func main() {
 		fmt.Println("Похоже что это свежая установка или вы грохнули старую XML-ку")
 	}
 
-	for *daemon {
+	for do := true; do; do = *daemon {
 		getRosreestrXML("https://e-trust.gosuslugi.ru/CA/DownloadTSL?schemaVersion=0")
 
 		root := UcRoot{}
@@ -421,7 +420,7 @@ func main() {
 		}
 
 		//	fingerFile, err := os.Create("./fingers.list")
-		fingerFile, err := create_file_if_not_exists("./fingers.list")
+		fingerFile, err := createFileIfNotExists("./fingers.list")
 		if err != nil {
 			log.Fatal("Cannot create file :", err)
 		}
