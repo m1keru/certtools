@@ -426,7 +426,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Cannot create file :", err)
 		}
-		defer fingerFile.Close()
+		//defer fingerFile.Close()
 
 		makeListOfUCS(&root)
 		if newer := checkXMLVersion(&root, &oldRoot); newer {
