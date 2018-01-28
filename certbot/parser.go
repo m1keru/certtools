@@ -403,6 +403,7 @@ func main() {
 	}
 
 	for do := true; do; do = *daemon {
+		fmt.Println("daemon: ", *daemon)
 		getRosreestrXML("https://e-trust.gosuslugi.ru/CA/DownloadTSL?schemaVersion=0")
 
 		root := UcRoot{}
@@ -432,6 +433,9 @@ func main() {
 			installCertByUcFile(*uclist, &root, fingerFile)
 			makeListInstalledCerts(listCaPath)
 			dumpUcsFingerptints(&oldRoot, fingerFile)
+			if *daemon {
+				continue
+			}
 			return
 		}
 		fmt.Println("Ну мы тут посовещались и решили что XML-ка не обновилась, делать ниче не будем")
