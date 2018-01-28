@@ -135,8 +135,8 @@ func findAndInstallCertByName(ucName string, root *UcRoot, fingerFile *os.File) 
 			uc.installCrls()
 			uc.installCerts(fingerFile)
 		} else {
-			//fmt.Printf("debug: not equal: %s !=  %s\n", ucName, uc.FullName)
-			//fmt.Printf("debug: not equal: %x !=  %x\n", []byte(ucName), []byte(uc.FullName))
+			//			fmt.Printf("debug: not equal: %s !=  %s\n", ucName, uc.FullName)
+			//			fmt.Printf("debug: not equal: %x !=  %x\n", []byte(ucName), []byte(uc.FullName))
 		}
 	}
 }
@@ -238,6 +238,7 @@ func dumpUcsFingerptints(root *UcRoot, fingerFile *os.File) {
 			}
 		}
 	}
+	fingerFile.Close()
 }
 
 func makeListOfUCS(root *UcRoot) {
