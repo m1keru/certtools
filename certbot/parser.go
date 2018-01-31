@@ -435,6 +435,7 @@ func main() {
 			makeListInstalledCerts(listCaPath)
 			dumpUcsFingerptints(&oldRoot, fingerFile)
 			if *daemon {
+				time.Sleep(time.Minute * 120)
 				continue
 			}
 			return
