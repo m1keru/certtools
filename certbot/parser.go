@@ -135,8 +135,8 @@ func findAndInstallCertByName(ucName string, root *UcRoot, fingerFile *os.File) 
 			uc.installCrls()
 			uc.installCerts(fingerFile)
 		} else {
-			//fmt.Printf("debug: not equal: %s !=  %s\n", ucName, uc.FullName)
-			//fmt.Printf("debug: not equal: %x !=  %x\n", []byte(ucName), []byte(uc.FullName))
+			//			fmt.Printf("debug: not equal: %s !=  %s\n", ucName, uc.FullName)
+			//			fmt.Printf("debug: not equal: %x !=  %x\n", []byte(ucName), []byte(uc.FullName))
 		}
 	}
 }
@@ -238,6 +238,7 @@ func dumpUcsFingerptints(root *UcRoot, fingerFile *os.File) {
 			}
 		}
 	}
+	fingerFile.Close()
 }
 
 func makeListOfUCS(root *UcRoot) {
@@ -403,6 +404,7 @@ func main() {
 	}
 
 	for do := true; do; do = *daemon {
+		fmt.Println("daemon: ", *daemon)
 		getRosreestrXML("https://e-trust.gosuslugi.ru/CA/DownloadTSL?schemaVersion=0")
 
 		root := UcRoot{}
@@ -424,7 +426,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Cannot create file :", err)
 		}
-		defer fingerFile.Close()
+		//defer fingerFile.Close()
 
 		makeListOfUCS(&root)
 		if newer := checkXMLVersion(&root, &oldRoot); newer {
@@ -432,6 +434,10 @@ func main() {
 			installCertByUcFile(*uclist, &root, fingerFile)
 			makeListInstalledCerts(listCaPath)
 			dumpUcsFingerptints(&oldRoot, fingerFile)
+			if *daemon {
+				time.Sleep(time.Minute * 120)
+				continue
+			}
 			return
 		}
 		fmt.Println("Ну мы тут посовещались и решили что XML-ка не обновилась, делать ниче не будем")
