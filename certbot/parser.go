@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -23,8 +24,11 @@ import (
 )
 
 //VERSION  Версия дистриба
-var VERSION = 1.6
+var VERSION = 1.7
 
+// 1.7 - добавилена возможность скачивания списка аккредитованных УЦ из http ресурса
+//http://gitlab.tektorg.ru/m1ke/certtools/raw/master/certbot/uc_accr.list?private_token=gQysKxdxTiAWYffkjgMy
+// 1.6 - правка багов
 // 1.5 - добавлен режим демона
 // 1.3 - added locking
 // var failedCrls []string
@@ -334,6 +338,30 @@ func killOnTimeout(lock *lockfile.Lockfile, timeout int64) {
 	log.Panic("Чето пощло не так")
 }
 
+func detectUCListLocation(list *string) string {
+	var fileContent []byte
+	ucListFile := *list
+	match, _ := regexp.MatchString("http[s]?://[a-zA-Z0-9]*", *list)
+	if match {
+		response, err := http.Get(*list)
+		if err != nil {
+			log.Panic("Не можем загрузить список УЦ аккредитованных на плщадке" + err.Error())
+		}
+		fileContent, err = ioutil.ReadAll(response.Body)
+		if err != nil {
+			log.Panic("Загрузили список УЦ аккредитованных на площадке, но не можем его прочитать" + err.Error())
+		}
+		if err := ioutil.WriteFile("/tmp/__certParserTmp__uc_list", fileContent, 0600); err != nil {
+			log.Panic("Не смогли сохранить временный файл со списком УЦ", err.Error())
+		}
+		ucListFile = "/tmp/__certParserTmp__uc_list"
+		*list = ucListFile
+		return ucListFile
+	}
+	*list = ucListFile
+	return ucListFile
+}
+
 func main() {
 	runtime.GOMAXPROCS(2)
 	var certPath = flag.String("certpath", "None", "путь до сертификата который проверяем (работаете только совместно c --testcert)")
@@ -355,6 +383,8 @@ func main() {
 		fmt.Println(VERSION)
 		return
 	}
+
+	detectUCListLocation(uclist)
 
 	lock, err := lockfile.New(filepath.Join(os.TempDir(), "certbot.lock"))
 	if err != nil {
