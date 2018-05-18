@@ -191,6 +191,7 @@ func (center *Center) installCerts(fingerFile *os.File) {
 					if err := installCertToContainer(&cert.CertData); err != nil {
 						panic(err)
 					}
+					fingerFile.WriteString(string(cert.Footprint) + "\n")
 					fmt.Printf("%-90sinstalled\n", string(cert.Serial))
 				}
 			}
@@ -211,6 +212,7 @@ func installCertToContainer(cert *[]byte) error {
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
+
 	defer os.Remove(file)
 	return nil
 }
@@ -232,7 +234,7 @@ func installCrlToContainer(cert *string) error {
 	return nil
 }
 
-func dumpUcsFingerptints(root *UcRoot, fingerFile *os.File) {
+/* func dumpUcsFingerptints(root *UcRoot, fingerFile *os.File) {
 	for _, uc := range root.Centers {
 		for _, pak := range uc.PAKs {
 			for _, key := range pak.Keys {
@@ -244,6 +246,7 @@ func dumpUcsFingerptints(root *UcRoot, fingerFile *os.File) {
 	}
 	fingerFile.Close()
 }
+*/
 
 func makeListOfUCS(root *UcRoot) {
 	ucFile, err := os.Create("./ucs_grabbed.list")
@@ -351,6 +354,9 @@ func detectUCListLocation(list *string) string {
 		if err != nil {
 			log.Panic("Загрузили список УЦ аккредитованных на площадке, но не можем его прочитать" + err.Error())
 		}
+
+		os.Remove("/tmp/__certParserTmp__uc_list")
+
 		if err := ioutil.WriteFile("/tmp/__certParserTmp__uc_list", fileContent, 0600); err != nil {
 			log.Panic("Не смогли сохранить временный файл со списком УЦ", err.Error())
 		}
@@ -463,7 +469,7 @@ func main() {
 			fmt.Println("У нас новая XML-ка, ну давайте запарсим и загрузим!")
 			installCertByUcFile(*uclist, &root, fingerFile)
 			makeListInstalledCerts(listCaPath)
-			dumpUcsFingerptints(&oldRoot, fingerFile)
+			//dumpUcsFingerptints(&oldRoot, fingerFile)
 			if *daemon {
 				time.Sleep(time.Minute * 120)
 				continue
