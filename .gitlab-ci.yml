@@ -1,0 +1,85 @@
+#11111
+variables:
+  BIN_NAME: "certbot"
+  GIT_STRATEGY: clone
+
+
+do_lock:
+   stage: lock
+   only:
+    - build
+   tags:
+    - golang
+    - dev
+   script:
+    - /usr/local/bin/pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -lock
+    
+do_unlock:
+   stage: unlock
+   only:
+    - build
+   tags:
+    - golang
+    - dev
+   script:
+    - /usr/local/bin/pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -unlock 
+
+#after_script:
+#    - echo $?
+
+
+do_build:
+  stage: build
+  tags:
+    - golang
+    - dev
+  only:
+    - build
+  script:
+    - export GOPATH=$(pwd)
+    #- cat certbot/uc_accr.list
+    - mkdir src build
+    - mv certbot ./src/
+    - pushd src/certbot > /dev/null
+    - go get ./...
+    - go build -o ${BIN_NAME}
+    - popd > /dev/null
+    - rm -rf src/certbot/parser.go
+    - rsync -av  src/certbot/ build/
+    - cat build/uc_accr.list
+  artifacts:
+    paths:
+      - build/${BIN_NAME}
+      - build/uc_accr.list
+      - build/guc.list
+    when: on_success
+    expire_in: 1 day
+  environment:
+    name: m1ke
+
+do_notify_success:
+  stage: notify
+  tags:
+    - golang
+  only:
+    - build
+  script:
+    - /usr/local/bin/tgbot -msg "прошла успешная сборка *${CI_PROJECT_NAME}* ветки *${CI_COMMIT_REF_NAME}* [pipeline](${CI_PROJECT_URL}/pipelines/${CI_PIPELINE_ID})" || /bin/true
+  when: on_success
+
+
+do_notify_failure:
+  stage: notify
+  tags:
+    - golang
+  only:
+    - build
+  script:
+    - /usr/local/bin/tgbot -fail -msg "сборка провалилась *${CI_PROJECT_NAME}* ветки *${CI_COMMIT_REF_NAME}* [pipeline](${CI_PROJECT_URL}/pipelines/${CI_PIPELINE_ID})" || /bin/true
+  when: on_failure
+
+stages:
+  - lock
+  - build
+  - notify
+  - unlock
