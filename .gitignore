@@ -6,4 +6,4 @@ certbot/fingers.list
 certbot/installed.list
 certbot/uc.xml
 certbot/ucs.list
-certbot/certbot
+certbot/.idea
