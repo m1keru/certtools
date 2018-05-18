@@ -24,8 +24,8 @@ import (
 )
 
 //VERSION  Версия дистриба
-var VERSION = 1.7
-
+var VERSION = 1.8
+// 1.8 - FIX исправление для finger.list
 // 1.7 - добавилена возможность скачивания списка аккредитованных УЦ из http ресурса
 //http://gitlab.tektorg.ru/m1ke/certtools/raw/master/certbot/uc_accr.list?private_token=gQysKxdxTiAWYffkjgMy
 // 1.6 - правка багов
