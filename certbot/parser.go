@@ -20,11 +20,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jlaffaye/ftp"
 	"github.com/nightlyone/lockfile"
 )
 
 //VERSION  Версия дистриба
-var VERSION = 1.8
+var VERSION = 1.91
+
+// 1.91 - Добавлен  костыль для УЦ Выбор скачивающий с ftp.
+// TODO: на базе дорвботки доделать ftp интерфейс.
+// 1.9 - Пробуем добавить работу с ftp
 // 1.8 - FIX исправление для finger.list
 // 1.7 - добавилена возможность скачивания списка аккредитованных УЦ из http ресурса
 //http://gitlab.tektorg.ru/m1ke/certtools/raw/master/certbot/uc_accr.list?private_token=gQysKxdxTiAWYffkjgMy
@@ -234,6 +239,19 @@ func installCrlToContainer(cert *string) error {
 	return nil
 }
 
+func installCrlToContainerLocal(cert *[]byte) error {
+	file, _ := makeTemp(cert)
+	cmd := exec.Command("/opt/cprocsp/bin/amd64/certmgr", "-inst", "-store=mCA", "-crl", "--file="+file)
+	if err := cmd.Run(); err != nil {
+		if err.Error() == "exit status 45" {
+			fmt.Printf("error:%3scrl not valid:%s\n", " ", *cert)
+			return errors.New("CRLNVAL")
+		}
+	}
+	defer os.Remove(file)
+	return nil
+}
+
 /* func dumpUcsFingerptints(root *UcRoot, fingerFile *os.File) {
 	for _, uc := range root.Centers {
 		for _, pak := range uc.PAKs {
@@ -285,6 +303,7 @@ func makeListInstalledCerts(listCaPath *string) {
 func getCrlByURL(crl *string) ([]byte, error) {
 	supportedProtos := map[string]bool{"http": true, "ftp": false}
 	if supportedProtos[strings.Split(*crl, ":")[0]] == false {
+		//loadOverFTP(strings.Split(*crl, ":")[0])
 		return nil, errors.New("unsupported proto")
 	}
 
@@ -302,6 +321,66 @@ func getCrlByURL(crl *string) ([]byte, error) {
 		return nil, err
 	}
 	return fileContent, nil
+}
+
+func loadOverFTP(url string) error {
+	client, err := ftp.Dial(url)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	client.DisableEPSV = true
+
+	if err := client.Login("anonymous", "anonimous"); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	ftpWalk(client)
+
+	return nil
+}
+
+
+func ftpWalk(client *ftp.ServerConn) error {
+	currentDir, _ := client.CurrentDir()
+	entries, err := client.List(currentDir)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	for _, entry := range entries {
+		if entry.Type == ftp.EntryTypeFolder {
+			client.ChangeDir(entry.Name)
+			ftpWalk(client)
+		} else {
+			ucFile, err := client.Retr(currentDir+"/"+entry.Name)
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+			ucFile.SetDeadline(time.Now().Add(time.Second * 10))
+
+			buf, err := ioutil.ReadAll(ucFile)
+			ucFile.Close()
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+
+			if strings.Contains(entry.Name,"crt") {
+				installCertToContainer(&buf)
+				fmt.Println("[Костыль для Выбора]: CRT ",currentDir,"/",entry.Name," -> installed")
+
+			} else if strings.Contains(entry.Name, "crl") {
+				installCrlToContainerLocal(&buf)
+				fmt.Println("[Костыль для Выбора]: CRL ",currentDir,"/",entry.Name," -> installed")
+			}
+
+		}
+	}
+	client.ChangeDirToParent()
+	return nil
 }
 
 func getRosreestrXML(url string) {
@@ -370,6 +449,10 @@ func detectUCListLocation(list *string) string {
 
 func main() {
 	runtime.GOMAXPROCS(2)
+
+	//loadOverFTP("ftp.icvibor.ru:21")
+	//os.Exit(0)
+
 	var certPath = flag.String("certpath", "None", "путь до сертификата который проверяем (работаете только совместно c --testcert)")
 	var testCert = flag.Bool("testcert", false, "флаг указывающий на режим проверки сертификата")
 	var forceUpdate = flag.Bool("forceupdate", false, "флаг указывающий на игнорирование проверки версии xml")
@@ -384,7 +467,6 @@ func main() {
 		flag.Usage()
 		return
 	}
-
 	if *version {
 		fmt.Println(VERSION)
 		return
