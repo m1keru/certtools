@@ -44,7 +44,7 @@ do_deploy:
     only:
      - build
      script:
-      - - docker-compose build && docker-compose push
+      - docker-compose build && docker-compose push
 stages:
   - build
   - deploy
