@@ -1,0 +1,15 @@
+version: "3"
+services:
+  daemon:
+    image: gitlab.tektorg.ru:5001/m1ke/docker/certbot:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - certbot:/var/opt/cprocsp
+    restart: always
+    extra_hosts:
+      gitlab.tektorg.ru: 10.101.24.2
+
+volumes:
+  certbot:
