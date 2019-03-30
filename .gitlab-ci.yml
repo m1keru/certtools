@@ -19,7 +19,7 @@ do_build:
     - go build -o ${BIN_NAME}
     - popd > /dev/null
     - rm -rf src/certbot/parser.go
-    - rsync -av  src/certbot/ build/
+    - mv  src/certbot/* build/
     #- docker-compose build && docker-compose push
     #- cat build/uc_accr.list
   artifacts:
