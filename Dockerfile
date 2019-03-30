@@ -26,4 +26,4 @@ sed -ie 's#^.*libcurl.so.*$#"libcurl\.so"="/usr/lib64/libcurl\.so\.4"#' /etc/opt
 #CERTBOT
 ADD ./build/certbot /opt/
 
-ENTRYPOINT ["/opt/certbot","--daemon","--forceupdate","--list=http://gitlab.tektorg.ru/m1ke/certtools/raw/master/certbot/uc_accr.list?private_token=gQysKxdxTiAWYffkjgMy"]
+ENTRYPOINT ["/opt/certbot","--daemon","--forceupdate"]
