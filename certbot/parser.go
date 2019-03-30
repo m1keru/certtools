@@ -1,7 +1,6 @@
 package main                 
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/tls"
 	"encoding/xml"
@@ -15,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strings"
 	"time"
