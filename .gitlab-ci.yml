@@ -1,38 +1,11 @@
-#11111
 variables:
   BIN_NAME: "certbot"
   GIT_STRATEGY: clone
 
-
-do_lock:
-   stage: lock
-   only:
-    - build
-   tags:
-    - golang
-    - dev
-   script:
-    - /usr/local/bin/pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -lock
-    
-do_unlock:
-   stage: unlock
-   only:
-    - build
-   tags:
-    - golang
-    - dev
-   script:
-    - /usr/local/bin/pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -unlock 
-
-#after_script:
-#    - echo $?
-
-
 do_build:
   stage: build
   tags:
-    - golang
-    - dev
+    - docker_build
   only:
     - build
   script:
@@ -58,29 +31,5 @@ do_build:
   environment:
     name: m1ke
 
-do_notify_success:
-  stage: notify
-  tags:
-    - golang
-  only:
-    - build
-  script:
-    - /usr/local/bin/tgbot -msg "прошла успешная сборка *${CI_PROJECT_NAME}* ветки *${CI_COMMIT_REF_NAME}* [pipeline](${CI_PROJECT_URL}/pipelines/${CI_PIPELINE_ID})" || /bin/true
-  when: on_success
-
-
-do_notify_failure:
-  stage: notify
-  tags:
-    - golang
-  only:
-    - build
-  script:
-    - /usr/local/bin/tgbot -fail -msg "сборка провалилась *${CI_PROJECT_NAME}* ветки *${CI_COMMIT_REF_NAME}* [pipeline](${CI_PROJECT_URL}/pipelines/${CI_PIPELINE_ID})" || /bin/true
-  when: on_failure
-
 stages:
-  - lock
   - build
-  - notify
-  - unlock
