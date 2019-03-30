@@ -40,6 +40,8 @@ do_deploy:
     tags:
      - docker_build
     script:
+      - cat /root/.docker/config.json
+      - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
       - docker-compose build && docker-compose push
     only:
     - build 
