@@ -19,7 +19,7 @@ RUN localedef  -i ru_RU -f UTF-8 ru_RU.UTF-8 && echo "export LANG=ru_RU.UTF-8" >
 
 
 #CRYPTOPRO
-ADD ./cryptopro/rpm/linux-amd64.tgz /tmp/
+ADD ./cryptopro/rpm/linux-amd64.tar.gz /tmp/
 RUN cd /tmp/linux-amd64 && ./install.sh && \
 sed -ie 's#^.*libcurl.so.*$#"libcurl\.so"="/usr/lib64/libcurl\.so\.4"#' /etc/opt/cprocsp/config64.ini
 
