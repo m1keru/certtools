@@ -4,6 +4,9 @@ variables:
 
 do_build:
   stage: build
+  image: golang
+  before_script:
+   - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
   tags:
     - docker_build
   only:
@@ -19,7 +22,7 @@ do_build:
     - popd > /dev/null
     - rm -rf src/certbot/parser.go
     - rsync -av  src/certbot/ build/
-    - docker-compose build && docker-compose push
+    #- docker-compose build && docker-compose push
     #- cat build/uc_accr.list
   artifacts:
     paths:
@@ -30,6 +33,18 @@ do_build:
     expire_in: 1 day
   environment:
     name: m1ke
-
+    
+do_deploy:
+    image: tmaier/docker-compose:18.09
+    stage: deploy
+    before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    tags:
+     - docker_build
+    only:
+     - build
+     script:
+      - - docker-compose build && docker-compose push
 stages:
   - build
+  - deploy
