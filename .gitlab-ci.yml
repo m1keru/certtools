@@ -40,6 +40,7 @@ do_deploy:
     tags:
      - docker_build
     script:
+      - cat /root/.docker/config.json
       - docker-compose build && docker-compose push
     only:
     - build 
