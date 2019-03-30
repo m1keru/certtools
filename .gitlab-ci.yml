@@ -41,10 +41,10 @@ do_deploy:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
     tags:
      - docker_build
-    only:
-     - build
-     script:
+    script:
       - docker-compose build && docker-compose push
+    only:
+    - build 
 stages:
   - build
   - deploy
