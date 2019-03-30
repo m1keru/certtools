@@ -1,4 +1,4 @@
-package main
+package main                 
 
 import (
 	"bufio"
@@ -25,8 +25,10 @@ import (
 )
 
 //VERSION  Версия дистриба
-var VERSION = 1.91
+var VERSION = 1.10
 
+// 1.10 - обрабатываются все сертификаты, без фильтрации на список допущенных УЦ. 
+//        FTP пока остается не подключенным.
 // 1.91 - Добавлен  костыль для УЦ Выбор скачивающий с ftp.
 // TODO: на базе дорвботки доделать ftp интерфейс.
 // 1.9 - Пробуем добавить работу с ftp
@@ -138,6 +140,7 @@ func init() {
 	}
 }
 
+/*
 func findAndInstallCertByName(ucName string, root *UcRoot, fingerFile *os.File) {
 	for _, uc := range root.Centers {
 		if strings.Compare(ucName, strings.TrimSpace(uc.FullName)) == 0 {
@@ -149,7 +152,18 @@ func findAndInstallCertByName(ucName string, root *UcRoot, fingerFile *os.File) 
 		}
 	}
 }
+*/
 
+func installAllCert(root *UcRoot, fingerFile *os.File) {
+	for _, uc := range root.Centers {
+			uc.installCrls()
+			uc.installCerts(fingerFile)
+		}
+	}
+}
+
+
+/*
 func installCertByUcFile(listfile string, root *UcRoot, fingerFile *os.File) {
 	if file, err := os.Open(listfile); err != nil {
 		panic("error: Cannor open list of UC CNs")
@@ -163,6 +177,9 @@ func installCertByUcFile(listfile string, root *UcRoot, fingerFile *os.File) {
 		}
 	}
 }
+*/
+
+
 
 func (center *Center) installCrls() {
 	for _, pak := range center.PAKs {
@@ -420,6 +437,7 @@ func killOnTimeout(lock *lockfile.Lockfile, timeout int64) {
 	log.Panic("Чето пощло не так")
 }
 
+/*
 func detectUCListLocation(list *string) string {
 	var fileContent []byte
 	ucListFile := *list
@@ -446,6 +464,8 @@ func detectUCListLocation(list *string) string {
 	*list = ucListFile
 	return ucListFile
 }
+*/
+
 
 func main() {
 	runtime.GOMAXPROCS(2)
@@ -460,7 +480,7 @@ func main() {
 	var daemon = flag.Bool("daemon", false, "запустить в режиме демона, в этом режиме интерактив недоступен")
 	var listCa = flag.Bool("listca", false, "выводит список установленный корневых сертификатов в файл installed.list")
 	var listCaPath = flag.String("listcapath", "installed.list", "путь куда записать список сертификатов")
-	var uclist = flag.String("list", "", "путь до файла со списком аккредитованых УЦ")
+	//var uclist = flag.String("list", "", "путь до файла со списком аккредитованых УЦ")
 
 	flag.Parse()
 	if flag.NFlag() == 0 {
@@ -472,7 +492,7 @@ func main() {
 		return
 	}
 
-	detectUCListLocation(uclist)
+	//detectUCListLocation(uclist)
 
 	lock, err := lockfile.New(filepath.Join(os.TempDir(), "certbot.lock"))
 	if err != nil {
@@ -549,8 +569,9 @@ func main() {
 		makeListOfUCS(&root)
 		if newer := checkXMLVersion(&root, &oldRoot); newer {
 			fmt.Println("У нас новая XML-ка, ну давайте запарсим и загрузим!")
-			installCertByUcFile(*uclist, &root, fingerFile)
-			makeListInstalledCerts(listCaPath)
+			//installCertByUcFile(*uclist, &root, fingerFile)
+                        installAllCert(&root, fingerFile)
+			makeListInstalledCerts(listCaPath)  
 			//dumpUcsFingerptints(&oldRoot, fingerFile)
 			if *daemon {
 				time.Sleep(time.Minute * 120)
