@@ -1,38 +1,12 @@
-#11111
 variables:
   BIN_NAME: "certbot"
   GIT_STRATEGY: clone
 
-
-do_lock:
-   stage: lock
-   only:
-    - build
-   tags:
-    - golang
-    - dev
-   script:
-    - /usr/local/bin/pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -lock
-    
-do_unlock:
-   stage: unlock
-   only:
-    - build
-   tags:
-    - golang
-    - dev
-   script:
-    - /usr/local/bin/pipeline_lock -pipeline_id ${CI_PIPELINE_ID} -unlock 
-
-#after_script:
-#    - echo $?
-
-
 do_build:
   stage: build
+  image: golang
   tags:
-    - golang
-    - dev
+    - docker_build
   only:
     - build
   script:
@@ -45,8 +19,9 @@ do_build:
     - go build -o ${BIN_NAME}
     - popd > /dev/null
     - rm -rf src/certbot/parser.go
-    - rsync -av  src/certbot/ build/
-    - cat build/uc_accr.list
+    - mv  src/certbot/* build/
+    #- docker-compose build && docker-compose push
+    #- cat build/uc_accr.list
   artifacts:
     paths:
       - build/${BIN_NAME}
@@ -56,30 +31,20 @@ do_build:
     expire_in: 1 day
   environment:
     name: m1ke
-
-do_notify_success:
-  stage: notify
-  tags:
-    - golang
-  only:
-    - build
-  script:
-    - /usr/local/bin/tgbot -msg "прошла успешная сборка *${CI_PROJECT_NAME}* ветки *${CI_COMMIT_REF_NAME}* [pipeline](${CI_PROJECT_URL}/pipelines/${CI_PIPELINE_ID})" || /bin/true
-  when: on_success
-
-
-do_notify_failure:
-  stage: notify
-  tags:
-    - golang
-  only:
-    - build
-  script:
-    - /usr/local/bin/tgbot -fail -msg "сборка провалилась *${CI_PROJECT_NAME}* ветки *${CI_COMMIT_REF_NAME}* [pipeline](${CI_PROJECT_URL}/pipelines/${CI_PIPELINE_ID})" || /bin/true
-  when: on_failure
-
+    
+do_deploy:
+    image: tmaier/docker-compose:18.09
+    stage: deploy
+    before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    tags:
+     - docker_build
+    script:
+      - cat /root/.docker/config.json
+      - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+      - docker-compose build && docker-compose push
+    only:
+    - build 
 stages:
-  - lock
   - build
-  - notify
-  - unlock
+  - deploy
