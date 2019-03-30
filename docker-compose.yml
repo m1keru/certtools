@@ -1,7 +1,7 @@
 version: "3"
 services:
   daemon:
-    image: gitlab.tektorg.ru:5001/m1ke/docker/certbot:latest
+    image: gitlab.tektorg.ru:5001/m1ke/certtools:latest
     build:
       context: .
       dockerfile: Dockerfile
