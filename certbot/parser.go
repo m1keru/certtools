@@ -158,7 +158,6 @@ func installAllCert(root *UcRoot, fingerFile *os.File) {
 	for _, uc := range root.Centers {
 			uc.installCrls()
 			uc.installCerts(fingerFile)
-		}
 	}
 }
 
