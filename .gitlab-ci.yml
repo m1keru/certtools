@@ -5,8 +5,6 @@ variables:
 do_build:
   stage: build
   image: golang
-  before_script:
-   - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
   tags:
     - docker_build
   only:
