@@ -236,18 +236,41 @@ func installCertToContainer(cert *[]byte) error {
 	return nil
 }
 
+func get_hash(path *string) string{
+   f, err := os.Open(path)
+   if err != nil {
+       glog.Fatal(err)
+   }
+   defer f.Close()
+
+   hasher := sha256.New()
+   if _, err := io.Copy(hasher, f); err != nil {
+       glog.Fatal(err)
+   }
+   return := hex.EncodeToString(hasher.Sum(nil))
+}
+
+var CRL_hash_list string;
+
 func installCrlToContainer(cert *string) error {
 	content, err := getCrlByURL(cert)
 	if err != nil {
 		return err
 	}
 	file, _ := makeTemp(&content)
-	cmd := exec.Command("/opt/cprocsp/bin/amd64/certmgr", "-inst", "-store=mCA", "-crl", "--file="+file)
-	if err := cmd.Run(); err != nil {
-		if err.Error() == "exit status 45" {
-			fmt.Printf("error:%3scrl not valid:%s\n", " ", *cert)
-			return errors.New("CRLNVAL")
-		}
+	hs := get_hash(file);
+	if(strings.Contains(CRL_hash_list, hs) {
+	   //nothing to do    
+	}
+	else {
+   	   cmd := exec.Command("/opt/cprocsp/bin/amd64/certmgr", "-inst", "-store=mCA", "-crl", "--file="+file)
+	   if err := cmd.Run(); err != nil {
+	   	   if err.Error() == "exit status 45" {
+		   	   fmt.Printf("error:%3scrl not valid:%s\n", " ", *cert)
+			   return errors.New("CRLNVAL")
+		   }
+	   }
+	   CRL_hash_list = CRL_hash_list + ";" + hs;
 	}
 	defer os.Remove(file)
 	return nil
