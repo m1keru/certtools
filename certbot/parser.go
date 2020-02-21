@@ -2,11 +2,14 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"crypto/tls"
+	"encoding/hex"
 	"encoding/xml"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"log/syslog"
@@ -235,15 +238,15 @@ func installCertToContainer(cert *[]byte) error {
 }
 
 func get_hash(path *string) string {
-	f, err := os.Open(path)
+	f, err := os.Open(*path)
 	if err != nil {
-		glog.Fatal(err)
+		log.Fatal(err)
 	}
 	defer f.Close()
 
 	hasher := sha256.New()
 	if _, err := io.Copy(hasher, f); err != nil {
-		glog.Fatal(err)
+		log.Fatal(err)
 	}
 	return hex.EncodeToString(hasher.Sum(nil))
 }
@@ -256,7 +259,7 @@ func installCrlToContainer(cert *string) error {
 		return err
 	}
 	file, _ := makeTemp(&content)
-	hs := get_hash(file)
+	hs := get_hash(&file)
 	if strings.Contains(CRL_hash_list, hs) {
 		//nothing to do
 	} else {
@@ -363,7 +366,6 @@ func loadOverFTP(url string) error {
 		fmt.Println(err)
 		return err
 	}
-	client.DisableEPSV = true
 
 	if err := client.Login("anonymous", "anonimous"); err != nil {
 		fmt.Println(err)
