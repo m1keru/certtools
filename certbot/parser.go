@@ -1,4 +1,4 @@
-package main                 
+package main
 
 import (
 	"bytes"
@@ -25,7 +25,7 @@ import (
 //VERSION  Версия дистриба
 var VERSION = 1.10
 
-// 1.10 - обрабатываются все сертификаты, без фильтрации на список допущенных УЦ. 
+// 1.10 - обрабатываются все сертификаты, без фильтрации на список допущенных УЦ.
 //        FTP пока остается не подключенным.
 // 1.91 - Добавлен  костыль для УЦ Выбор скачивающий с ftp.
 // TODO: на базе дорвботки доделать ftp интерфейс.
@@ -154,11 +154,10 @@ func findAndInstallCertByName(ucName string, root *UcRoot, fingerFile *os.File) 
 
 func installAllCert(root *UcRoot, fingerFile *os.File) {
 	for _, uc := range root.Centers {
-			uc.installCrls()
-			uc.installCerts(fingerFile)
+		uc.installCrls()
+		uc.installCerts(fingerFile)
 	}
 }
-
 
 /*
 func installCertByUcFile(listfile string, root *UcRoot, fingerFile *os.File) {
@@ -175,8 +174,6 @@ func installCertByUcFile(listfile string, root *UcRoot, fingerFile *os.File) {
 	}
 }
 */
-
-
 
 func (center *Center) installCrls() {
 	for _, pak := range center.PAKs {
@@ -236,21 +233,21 @@ func installCertToContainer(cert *[]byte) error {
 	return nil
 }
 
-func get_hash(path *string) string{
-   f, err := os.Open(path)
-   if err != nil {
-       glog.Fatal(err)
-   }
-   defer f.Close()
+func get_hash(path *string) string {
+	f, err := os.Open(path)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	defer f.Close()
 
-   hasher := sha256.New()
-   if _, err := io.Copy(hasher, f); err != nil {
-       glog.Fatal(err)
-   }
-   return := hex.EncodeToString(hasher.Sum(nil))
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, f); err != nil {
+		glog.Fatal(err)
+	}
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-var CRL_hash_list string;
+var CRL_hash_list string
 
 func installCrlToContainer(cert *string) error {
 	content, err := getCrlByURL(cert)
@@ -258,19 +255,18 @@ func installCrlToContainer(cert *string) error {
 		return err
 	}
 	file, _ := makeTemp(&content)
-	hs := get_hash(file);
-	if(strings.Contains(CRL_hash_list, hs) {
-	   //nothing to do    
-	}
-	else {
-   	   cmd := exec.Command("/opt/cprocsp/bin/amd64/certmgr", "-inst", "-store=mCA", "-crl", "--file="+file)
-	   if err := cmd.Run(); err != nil {
-	   	   if err.Error() == "exit status 45" {
-		   	   fmt.Printf("error:%3scrl not valid:%s\n", " ", *cert)
-			   return errors.New("CRLNVAL")
-		   }
-	   }
-	   CRL_hash_list = CRL_hash_list + ";" + hs;
+	hs := get_hash(file)
+	if strings.Contains(CRL_hash_list, hs) {
+		//nothing to do
+	} else {
+		cmd := exec.Command("/opt/cprocsp/bin/amd64/certmgr", "-inst", "-store=mCA", "-crl", "--file="+file)
+		if err := cmd.Run(); err != nil {
+			if err.Error() == "exit status 45" {
+				fmt.Printf("error:%3scrl not valid:%s\n", " ", *cert)
+				return errors.New("CRLNVAL")
+			}
+		}
+		CRL_hash_list = CRL_hash_list + ";" + hs
 	}
 	defer os.Remove(file)
 	return nil
@@ -378,7 +374,6 @@ func loadOverFTP(url string) error {
 	return nil
 }
 
-
 func ftpWalk(client *ftp.ServerConn) error {
 	currentDir, _ := client.CurrentDir()
 	entries, err := client.List(currentDir)
@@ -391,7 +386,7 @@ func ftpWalk(client *ftp.ServerConn) error {
 			client.ChangeDir(entry.Name)
 			ftpWalk(client)
 		} else {
-			ucFile, err := client.Retr(currentDir+"/"+entry.Name)
+			ucFile, err := client.Retr(currentDir + "/" + entry.Name)
 			if err != nil {
 				fmt.Println(err)
 				return err
@@ -405,13 +400,13 @@ func ftpWalk(client *ftp.ServerConn) error {
 				return err
 			}
 
-			if strings.Contains(entry.Name,"crt") {
+			if strings.Contains(entry.Name, "crt") {
 				installCertToContainer(&buf)
-				fmt.Println("[Костыль для Выбора]: CRT ",currentDir,"/",entry.Name," -> installed")
+				fmt.Println("[Костыль для Выбора]: CRT ", currentDir, "/", entry.Name, " -> installed")
 
 			} else if strings.Contains(entry.Name, "crl") {
 				installCrlToContainerLocal(&buf)
-				fmt.Println("[Костыль для Выбора]: CRL ",currentDir,"/",entry.Name," -> installed")
+				fmt.Println("[Костыль для Выбора]: CRL ", currentDir, "/", entry.Name, " -> installed")
 			}
 
 		}
@@ -485,7 +480,6 @@ func detectUCListLocation(list *string) string {
 	return ucListFile
 }
 */
-
 
 func main() {
 	runtime.GOMAXPROCS(2)
@@ -590,8 +584,8 @@ func main() {
 		if newer := checkXMLVersion(&root, &oldRoot); newer {
 			fmt.Println("У нас новая XML-ка, ну давайте запарсим и загрузим!")
 			//installCertByUcFile(*uclist, &root, fingerFile)
-                        installAllCert(&root, fingerFile)
-			makeListInstalledCerts(listCaPath)  
+			installAllCert(&root, fingerFile)
+			makeListInstalledCerts(listCaPath)
 			//dumpUcsFingerptints(&oldRoot, fingerFile)
 			if *daemon {
 				time.Sleep(time.Minute * 120)
